@@ -522,15 +522,15 @@ def ray_march(ray_dist,
     # blend_weight: N x Rays x Samples x 1
     # background_transmission: N x Rays x 1
 
-
-    point_color = render_func(ray_features)
+    # the step to get radiance
+    point_color = render_func(ray_features) # take ray_features[..., 1:4], alpha (density) = ray_features[..., 0]
 
     # we are essentially predicting predict 1 - e^-sigma
     sigma = ray_features[..., 0] * ray_valid.float()
     opacity = 1 - torch.exp(-sigma * ray_dist)
 
     # cumprod exclusive
-    acc_transmission = torch.cumprod(1. - opacity + 1e-10, dim=-1)
+    acc_transmission = torch.cumprod(1. - opacity + 1e-10, dim=-1) # volume transmittance (\tao in the paper)
     temp = torch.ones(opacity.shape[0:2] + (1, )).to(
         opacity.device).float()  # N x R x 1
 

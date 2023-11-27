@@ -256,5 +256,3 @@ python3 train_ft.py \
         --prune_iter $prune_iter \
         --prune_thresh $prune_thresh \
         --uni_depth $uni_depth \
-        --debug
-

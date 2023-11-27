@@ -135,6 +135,7 @@ class BaseOptions:
         self.parser = parser
 
         return parser.parse_args()
+    
 
     def print_and_save_options(self, opt):
         message = ''

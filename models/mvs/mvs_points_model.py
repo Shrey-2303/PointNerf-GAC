@@ -229,30 +229,32 @@ class MvsPointsModel(nn.Module):
         points_dirs = None
         points_conf = None
         points_colors = None
-        for feat_str in getattr(self.args, feature_str_lst[cam_vid]):
-            if feat_str.startswith("imgfeat"):
-                _, view_ids, layer_ids = feat_str.split("_")
-                view_ids = [int(a) for a in list(view_ids)]
-                layer_ids = [int(a) for a in list(layer_ids)]
-                twoD_feats, points_colors = self.extract_2d(img_feats, view_ids, layer_ids, intrinsics, c2ws, w2cs, cam_xyz, HD, WD, cam_vid=cam_vid)
-                points_embedding.append(twoD_feats)
-            elif feat_str.startswith("dir"):
-                _, view_ids = feat_str.split("_")
-                view_ids = torch.as_tensor([int(a) for a in list(view_ids)], dtype=torch.int64, device=cam_xyz.device)
-                cam_pos_world = c2ws[:, view_ids, :, 3] # B, V, 4
-                cam_trans = w2cs[:, cam_vid, ...] # B, 4, 4
-                cam_pos_cam = (cam_pos_world @ cam_trans.transpose(1, 2))[...,:3] # B, V, 4
-                points_dirs = cam_xyz[:,:, None, :] - cam_pos_cam[:, None, :, :] # B, N, V, 3 in current cam coord
-                points_dirs = points_dirs / (torch.linalg.norm(points_dirs, dim=-1, keepdims=True) + 1e-6)  # B, N, V, 3
-                points_dirs = points_dirs.view(cam_xyz.shape[0], -1, 3) @ c2ws[:, cam_vid, :3, :3].transpose(1, 2)
-                if not pointdir_w:
-                    points_dirs = points_dirs @ c2ws[:, self.args.ref_vid, :3, :3].transpose(1, 2) # in ref cam coord
-                # print("points_dirs", points_dirs.shape)
-                points_dirs = points_dirs.view(cam_xyz.shape[0], cam_xyz.shape[1], -1)
-            elif feat_str.startswith("point_conf"):
-                if photometric_confidence is None:
-                    photometric_confidence = torch.ones_like(points_embedding[0][...,0:1])
-                points_conf = photometric_confidence
+        for feat_strs in getattr(self.args, feature_str_lst[cam_vid]):
+            feat_strs_list = feat_strs.split(" ")
+            for feat_str in feat_strs_list:
+                if feat_str.startswith("imgfeat"):
+                    _, view_ids, layer_ids = feat_str.split("_")
+                    view_ids = [int(a) for a in list(view_ids)]
+                    layer_ids = [int(a) for a in list(layer_ids)]
+                    twoD_feats, points_colors = self.extract_2d(img_feats, view_ids, layer_ids, intrinsics, c2ws, w2cs, cam_xyz, HD, WD, cam_vid=cam_vid)
+                    points_embedding.append(twoD_feats)
+                elif feat_str.startswith("dir"):
+                    _, view_ids = feat_str.split("_")
+                    view_ids = torch.as_tensor([int(a) for a in list(view_ids)], dtype=torch.int64, device=cam_xyz.device)
+                    cam_pos_world = c2ws[:, view_ids, :, 3] # B, V, 4
+                    cam_trans = w2cs[:, cam_vid, ...] # B, 4, 4
+                    cam_pos_cam = (cam_pos_world @ cam_trans.transpose(1, 2))[...,:3] # B, V, 4
+                    points_dirs = cam_xyz[:,:, None, :] - cam_pos_cam[:, None, :, :] # B, N, V, 3 in current cam coord
+                    points_dirs = points_dirs / (torch.linalg.norm(points_dirs, dim=-1, keepdims=True) + 1e-6)  # B, N, V, 3
+                    points_dirs = points_dirs.view(cam_xyz.shape[0], -1, 3) @ c2ws[:, cam_vid, :3, :3].transpose(1, 2)
+                    if not pointdir_w:
+                        points_dirs = points_dirs @ c2ws[:, self.args.ref_vid, :3, :3].transpose(1, 2) # in ref cam coord
+                    # print("points_dirs", points_dirs.shape)
+                    points_dirs = points_dirs.view(cam_xyz.shape[0], cam_xyz.shape[1], -1)
+                elif feat_str.startswith("point_conf"):
+                    if photometric_confidence is None:
+                        photometric_confidence = torch.ones_like(points_embedding[0][...,0:1])
+                    points_conf = photometric_confidence
         points_embedding = torch.cat(points_embedding, dim=-1)
         if self.args.shading_feature_mlp_layer0 > 0:
             points_embedding = self.premlp(torch.cat([points_embedding, points_colors, points_dirs, points_conf], dim=-1))

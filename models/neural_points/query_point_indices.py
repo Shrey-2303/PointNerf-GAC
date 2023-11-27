@@ -47,7 +47,7 @@ class lighting_fast_querier():
         self.ctx.pop()
 
 
-    def get_hyperparameters(self, h, w, intrinsic, near_depth, far_depth):
+    def get_hyperparametters(self, h, w, intrinsic, near_depth, far_depth):
         # print("h,w,focal,near,far", h.shape, w.shape, focal.shape, near_depth.shape, far_depth.shape)
         # x_r = w / 2 / focal
         # y_r = h / 2 / focal

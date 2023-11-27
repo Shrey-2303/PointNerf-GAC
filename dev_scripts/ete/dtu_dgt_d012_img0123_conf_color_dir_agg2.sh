@@ -16,7 +16,7 @@ bgmodel="no" #"plane"
 depth_occ=0
 depth_vid="012"
 trgt_id=3
-manual_depth_view=0 # use mvsnet pytorch
+manual_depth_view=1 # use mvsnet pytorch
 init_view_num=3
 pre_d_est="${nrCheckpoint}/MVSNet/model_000015.ckpt"
 manual_std_depth=0.0
@@ -93,7 +93,7 @@ lr=0.0005 # 0.0005 #0.00015
 lr_policy="iter_exponential_decay"
 lr_decay_iters=500000
 
-gpu_ids='3'
+gpu_ids='0'
 
 checkpoints_dir="${nrCheckpoint}/init"
 resume_dir="${checkpoints_dir}/${name}"
@@ -219,6 +219,5 @@ python3 train.py \
         --depth_conf_thresh $depth_conf_thresh \
         --geo_cnsst_num $geo_cnsst_num \
         --bgmodel $bgmodel \
-        --vox_res $vox_res \
-        --debug
+        --vox_res $vox_res
 

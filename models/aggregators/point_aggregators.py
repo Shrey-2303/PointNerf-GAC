@@ -553,6 +553,7 @@ class PointAggregator(torch.nn.Module):
                 feat = torch.cat([feat, dists_flat], dim=-1)
             feat = self.block2(feat)
 
+        # input is the feature from the previous MLP, containing color and direction information
         if self.opt.shading_feature_mlp_layer3>0:
             if sampled_color is not None:
                 sampled_color = sampled_color.view(-1, sampled_color.shape[-1])
@@ -612,6 +613,7 @@ class PointAggregator(torch.nn.Module):
                 alpha_holder = alpha
             alpha = alpha_holder.view(B * R * SR, K, alpha_holder.shape[-1])
             alpha = torch.sum(alpha * weight, dim=-2).view([-1, alpha.shape[-1]])[ray_valid, :] # alpha:
+            # where is the confidence
 
             # print("alpha", alpha.shape)
             # alpha_placeholder = torch.zeros([total_len, 1], dtype=torch.float32,
@@ -727,12 +729,13 @@ class PointAggregator(torch.nn.Module):
     def forward(self, sampled_color, sampled_Rw2c, sampled_dir, sampled_conf, sampled_embedding, sampled_xyz_pers, sampled_xyz, sample_pnt_mask, sample_loc, sample_loc_w, sample_ray_dirs, vsize, grid_vox_sz):
         # return B * R * SR * channel
         '''
+        K is the number of neightbors
         :param sampled_conf: B x valid R x SR x K x 1
         :param sampled_embedding: B x valid R x SR x K x F
-        :param sampled_xyz_pers:  B x valid R x SR x K x 3
+        :param sampled_xyz_pers:  B x valid R x SR x K x 3, location of the neighbors
         :param sampled_xyz:       B x valid R x SR x K x 3
         :param sample_pnt_mask:   B x valid R x SR x K
-        :param sample_loc:        B x valid R x SR x 3
+        :param sample_loc:        B x valid R x SR x 3, location of the centroids
         :param sample_loc_w:      B x valid R x SR x 3
         :param sample_ray_dirs:   B x valid R x SR x 3
         :param vsize:
@@ -773,6 +776,7 @@ class PointAggregator(torch.nn.Module):
         elif self.opt.agg_dist_pers == 20:
 
             if sampled_xyz_pers.shape[1] > 0:
+                # FIXME: Are sampled_xyz_pers and sample_loc in camera frame, and are normalized
                 xdist = sampled_xyz_pers[..., 0] * sampled_xyz_pers[..., 2] - sample_loc[:, :, :, None, 0] * sample_loc[:, :, :, None, 2]
                 ydist = sampled_xyz_pers[..., 1] * sampled_xyz_pers[..., 2] - sample_loc[:, :, :, None, 1] * sample_loc[:, :, :, None, 2]
                 zdist = sampled_xyz_pers[..., 2] - sample_loc[:, :, :, None, 2]
@@ -796,6 +800,7 @@ class PointAggregator(torch.nn.Module):
             exit()
         # self.print_point(dists, sample_loc_w, sampled_xyz, sample_loc, sampled_xyz_pers, sample_pnt_mask)
 
+        # FIXME: this step calculates the weights for view-dependent regression
         weight, sampled_embedding = self.dist_func(sampled_embedding, dists, sample_pnt_mask, vsize, grid_vox_sz, axis_weight=self.axis_weight)
 
         if self.opt.agg_weight_norm > 0 and self.opt.agg_distance_kernel != "trilinear" and not self.opt.agg_distance_kernel.startswith("num"):

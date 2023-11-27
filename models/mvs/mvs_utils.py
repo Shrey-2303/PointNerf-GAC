@@ -478,7 +478,8 @@ def normalize(v):
     return v/np.linalg.norm(v)
 
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR
-from warmup_scheduler import GradualWarmupScheduler
+# FIXME: what is this
+# from warmup_scheduler import GradualWarmupScheduler
 
 
 def construct_vox_points(xyz_val, vox_res, partition_xyz=None, space_min=None, space_max=None):

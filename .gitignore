@@ -4,6 +4,11 @@ __pycache__/
 *$py.class
 tags
 
+# folders with large size
+checkpoints/
+data_src/
+pointnerf.zip
+
 # C extensions
 *.so
 
