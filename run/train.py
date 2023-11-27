@@ -14,6 +14,7 @@ from utils.visualizer import Visualizer
 from utils import format as fmt
 from run.evaluate import report_metrics
 from render_vid import render_vid
+from tqdm import tqdm, trange
 torch.manual_seed(0)
 np.random.seed(0)
 
@@ -251,7 +252,7 @@ def main():
         for scheduler in model.schedulers:
             for i in range(total_steps):
                 scheduler.step()
-    for epoch in range(epoch_count, opt.niter + opt.niter_decay + 1):
+    for epoch in trange(epoch_count, opt.niter + opt.niter_decay + 1):
         epoch_start_time = time.time()
         epoch_iter = 0
         for i, data in enumerate(data_loader):
