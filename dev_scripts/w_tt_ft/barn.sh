@@ -288,6 +288,5 @@ python3 train_ft.py \
         --zero_one_loss_items $zero_one_loss_items \
         --zero_one_loss_weights $zero_one_loss_weights \
         --prune_max_iter $prune_max_iter \
-        --debug
 
 done

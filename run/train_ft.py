@@ -21,7 +21,7 @@ np.random.seed(0)
 import random
 import cv2
 from PIL import Image
-from tqdm import tqdm
+from tqdm import tqdm, trange
 import gc
 
 def mse2psnr(x): return -10.* torch.log(x)/np.log(10.)
@@ -801,20 +801,21 @@ def main():
         img_lst, c2ws_lst, w2cs_lst, intrinsics_all, HDWD_lst = None, None, None, None, None
 
     ############ initial test ###############
-    if total_steps == 0 and opt.maximum_step <= 0:
-        with torch.no_grad():
-            test_opt.nerf_splits = ["test"]
-            test_opt.split = "test"
-            test_opt.name = opt.name + "/test_{}".format(total_steps)
-            test_opt.test_num_step = opt.test_num_step
-            test_dataset = create_dataset(test_opt)
-            model.opt.is_train = 0
-            model.opt.no_loss = 1
-            test(model, test_dataset, Visualizer(test_opt), test_opt, test_bg_info, test_steps=total_steps)
-            model.opt.no_loss = 0
-            model.opt.is_train = 1
-            model.train()
-            exit()
+    # FIXME: unnecessary
+    # if total_steps == 0 and opt.maximum_step <= 0:
+    #     with torch.no_grad():
+    #         test_opt.nerf_splits = ["test"]
+    #         test_opt.split = "test"
+    #         test_opt.name = opt.name + "/test_{}".format(total_steps)
+    #         test_opt.test_num_step = opt.test_num_step
+    #         test_dataset = create_dataset(test_opt)
+    #         model.opt.is_train = 0
+    #         model.opt.no_loss = 1
+    #         test(model, test_dataset, Visualizer(test_opt), test_opt, test_bg_info, test_steps=total_steps)
+    #         model.opt.no_loss = 0
+    #         model.opt.is_train = 1
+    #         model.train()
+    #         exit()
 
     if total_steps == 0 and (len(train_dataset.id_list) > 30 or len(train_dataset.view_id_list)  > 30):
         other_states = {
@@ -826,7 +827,7 @@ def main():
 
     real_start=total_steps
     train_random_sample_size = opt.random_sample_size
-    for epoch in range(epoch_count, opt.niter + opt.niter_decay + 1):
+    for epoch in trange(epoch_count, opt.niter + opt.niter_decay + 1):
         epoch_start_time = time.time()
         for i, data in enumerate(data_loader):
             if opt.maximum_step is not None and total_steps >= opt.maximum_step:

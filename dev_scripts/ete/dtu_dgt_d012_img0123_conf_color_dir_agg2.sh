@@ -9,8 +9,7 @@ data_root="${nrDataRoot}/dtu"
 
 load_points=0
 feedforward=1
-vox_res=0 #800
-
+vox_res=0 #80
 ref_vid=0
 bgmodel="no" #"plane"
 depth_occ=0
